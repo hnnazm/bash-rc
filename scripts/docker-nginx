@@ -1,0 +1,20 @@
+#!/bin/bash
+
+if ! command -v docker &> /dev/null
+then
+  echo "docker could not be found"
+  exit 1
+fi
+
+nginxup() {
+  id=$(docker run \
+    --rm \
+    -P \
+    -d \
+    -v "$(pwd)":/usr/share/nginx/html:ro \
+    nginx)
+
+  docker container port "$id"
+
+  docker container logs -f "$id"
+}
