@@ -1,0 +1,146 @@
+#!/usr/bin/env bash
+
+export DOCKER_REPO_PREFIX=nan
+
+# Helper functions
+
+dcleanup() {
+  # Remove dangling containers, images, and volumes
+
+	local containers
+	mapfile -t containers < <(docker ps -aq 2>/dev/null)
+	docker rm "${containers[@]}" 2>/dev/null
+  
+	local volumes
+	mapfile -t volumes < <(docker ps --filter status=exited -q 2>/dev/null)
+	docker rm -v "${volumes[@]}" 2>/dev/null
+
+	local images
+	mapfile -t images < <(docker images --filter dangling=true -q 2>/dev/null)
+	docker rmi "${images[@]}" 2>/dev/null
+}
+
+del_stopped() {
+  # Stop docker container
+	local name=$1
+	local state
+
+	state=$(docker inspect --format "{{.State.Running}}" "$name" 2>/dev/null)
+
+	if [[ "$state" == "false" ]]; then
+		docker rm "$name"
+	fi
+}
+
+rmctr() {
+  # Remove container
+	# shellcheck disable=SC2068
+	docker rm -f $@ 2>/dev/null || true
+}
+
+# Language runtime and compiler
+init_go() {
+  docker run \
+    --rm \
+    -v "$(pwd)":/usr/src/myapp \
+    -w /usr/src/myapp \
+    -e GOARCH=amd64 \
+    -e GOOS=linux \
+    golang:latest \
+    go mod init $@
+}
+alias gi=init_go
+
+compile_go() {
+  local filename=$1
+
+  docker run \
+    --rm \
+    -v "$(pwd)":/usr/src/myapp \
+    -w /usr/src/myapp \
+    -e GOARCH=amd64 \
+    -e GOOS=linux \
+    golang:latest \
+    /bin/bash -c "go get . && go build -v -o ${filename:-''} -ldflags='-s -w'"
+}
+alias gc=compile_go
+
+btm() {
+	if [[ -n "$(which btm)" ]]; then
+		"$(which btm)" "$@"
+	else
+		docker run --rm -it \
+			--pid host \
+			--net none \
+			--name htop \
+			${DOCKER_REPO_PREFIX}/bottom
+	fi
+}
+
+nvim() {
+  if [[ -n "$(which nvim)" ]]; then
+      "$(which nvim)" "$@"
+    else
+    docker run --rm -it \
+      -v "$(pwd)":/devspace \
+      --hostname devspace \
+      ${DOCKER_REPO_PREFIX}/neovim
+  fi
+}
+
+http() {
+  if [[ -n "$(which http)" ]]; then
+      "$(which http)" "$@"
+    else
+    docker run -ti --rm \
+      -v ~/.httpie:/root/.httpie \
+      ${DOCKER_REPO_PREFIX}/httpie \
+      $@
+  fi
+}
+
+https() {
+  if [[ -n "$(which https)" ]]; then
+      "$(which https)" "$@"
+    else
+    docker run -ti --rm \
+      -v ~/.httpie:/root/.httpie \
+      --entrypoint=https \
+      ${DOCKER_REPO_PREFIX}/httpie \
+      $@
+  fi
+}
+
+init_rust() {
+  docker run \
+    --rm \
+    -v "$(pwd)":/devspace \
+    -w /devspace \
+    rust:latest \
+    cargo init $@
+}
+alias ri=init_rust
+
+run_rust() {
+  local filename=$1
+
+  docker run \
+    --rm \
+    -v "$(pwd)":/devspace \
+    -w /devspace \
+    rust:latest \
+    /bin/bash -c "cargo run"
+}
+alias rr=run_rust
+
+test_rust() {
+  local filename=$1
+
+  docker run \
+    --rm \
+    -v "$(pwd)":/devspace \
+    -w /devspace \
+    rust:latest \
+    /bin/bash -c "cargo test $@"
+}
+alias tr=test_rust

@@ -1,0 +1,39 @@
+#
+#   ██████╗  █████╗ ███████╗██╗  ██╗
+#   ██╔══██╗██╔══██╗██╔════╝██║  ██║
+#   ██████╔╝███████║███████╗███████║
+#   ██╔══██╗██╔══██║╚════██║██╔══██║
+#   ██████╔╝██║  ██║███████║██║  ██║
+#   ╚═════╝ ╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝
+#                                     config-file
+
+# ===============================================
+#  General Setting
+# ===============================================
+
+  test -e /etc/bashrc && source /etc/bashrc
+
+  case $- in
+    *i*);;  # interactive
+    *)return ;;
+  esac
+
+  # Vi mode
+  set -o vi
+
+  # Shell Options
+  shopt -s checkwinsize
+  shopt -s histappend
+
+
+# ===============================================
+# External Scripts
+# ===============================================
+
+  if [ -d $BASHDOTDIR/scripts ]; then
+    for file in $BASHDOTDIR/scripts/*; do
+      source "$file"
+    done
+  fi
+. "$HOME/.cargo/env"
+source ~/.bash_completion/alacritty

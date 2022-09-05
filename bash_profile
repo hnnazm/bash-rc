@@ -1,0 +1,75 @@
+#
+#   ██████╗  █████╗ ███████╗██╗  ██╗
+#   ██╔══██╗██╔══██╗██╔════╝██║  ██║
+#   ██████╔╝███████║███████╗███████║
+#   ██╔══██╗██╔══██║╚════██║██╔══██║
+#   ██████╔╝██║  ██║███████║██║  ██║
+#   ╚═════╝ ╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝
+#                                     env-file
+
+# Terminal ---------------------------------------
+# export TERM=xterm-256color
+export BASH_SILENCE_DEPRECATION_WARNING=1
+
+# XDG --------------------------------------------
+export XDG_CONFIG_HOME="$HOME/.config"
+export XDG_DATA_HOME="$XDG_CONFIG_HOME/local/share"
+export XDG_CACHE_HOME="$XDG_CONFIG_HOME/cache"
+
+# PATH --------------------------------------------
+export PATH=$PATH:\
+~/.local/bin
+
+# Pager -------------------------------------------
+export EDITOR=vi
+export VISUAL=vi
+
+# Pager -------------------------------------------
+export PAGER=less
+
+# Bash --------------------------------------------
+export BASHDOTDIR="$XDG_CONFIG_HOME/bash"
+export HISTCONTROL=ignoreboth
+export HISTSIZE=10000                   # Maximum events for internal history
+export SAVEHIST=10000                   # Maximum events in history file
+export KEYTIMEOUT=1
+
+source $BASHDOTDIR/bashrc
+
+# cdpath ------------------------------------------
+export CDPATH=.:\
+~/devspace:\
+~/.config:\
+~
+
+# brew --------------------------------------------
+if type brew &>/dev/null; then
+  HOMEBREW_PREFIX="$(brew --prefix)"
+  if [[ -r "${HOMEBREW_PREFIX}/etc/profile.d/bash_completion.sh" ]]; then
+    source "${HOMEBREW_PREFIX}/etc/profile.d/bash_completion.sh"
+  else
+    for COMPLETION in "${HOMEBREW_PREFIX}/etc/bash_completion.d/"*; do
+      [[ -r "$COMPLETION" ]] && source "$COMPLETION"
+    done
+  fi
+fi
+
+# Rust --------------------------------------------
+# export RUSTUP_HOME="$XDG_CONFIG_HOME/rustup"
+# export CARGO_HOME="$XDG_CONFIG_HOME/cargo"
+
+# fzf ---------------------------------------------
+# if [[ ! "$PATH" == */usr/local/opt/fzf/bin* ]]; then
+#   export PATH="${PATH:+${PATH}:}/usr/local/opt/fzf/bin"
+# fi
+# 
+# [[ $- == *i* ]] && source "/usr/local/opt/fzf/shell/completion.bash" 2> /dev/null
+# 
+# source "/usr/local/opt/fzf/shell/key-bindings.bash"
+
+# bottom ------------------------------------------
+# [[ $- == *i* ]] && source "/usr/local/etc/bash_completion.d/rg.bash" 2> /dev/null
+
+# bat ---------------------------------------------
+
+. "$HOME/.cargo/env"
